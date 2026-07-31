@@ -4,11 +4,13 @@ import { Save, CheckCircle2 } from 'lucide-react';
 
 export default function ProfilEditPage() {
   const [profil, setProfil] = useState(DataService.getProfil());
+  const [statistik, setStatistik] = useState(DataService.getStatistik());
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     DataService.updateProfil(profil);
+    DataService.updateStatistik(statistik);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 4000);
   };
@@ -18,14 +20,14 @@ export default function ProfilEditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-serif font-bold text-2xl text-slate-900">Edit Profil & Sejarah Desa</h2>
-          <p className="text-xs text-slate-500">Perbarui identitas, visi-misi, dan sambutan kepala gampong.</p>
+          <p className="text-xs text-slate-500">Perbarui identitas, visi-misi, statistik, dan sambutan kepala gampong.</p>
         </div>
       </div>
 
       {success && (
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>Profil desa berhasil diperbarui dan telah diterapkan ke halaman publik!</span>
+          <span>Profil desa & data statistik berhasil diperbarui dan diterapkan ke halaman publik!</span>
         </div>
       )}
 
@@ -80,6 +82,52 @@ export default function ProfilEditPage() {
               onChange={(e) => setProfil({ ...profil, provinsi: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
+          </div>
+        </div>
+
+        {/* STATISTIK DESA */}
+        <div className="pt-4 border-t border-slate-100 space-y-4">
+          <div>
+            <h3 className="font-serif font-bold text-base text-slate-900">Data Statistik Kependudukan & Wilayah</h3>
+            <p className="text-xs text-slate-500">Ubah angka Total Penduduk, Kepala Keluarga, Luas Wilayah, dan Dusun/RT.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {statistik.map((item, index) => (
+              <div key={item.id || index} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">{item.label}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[10px] text-slate-500 font-semibold">Nilai / Jumlah</label>
+                    <input
+                      type="text"
+                      value={item.nilai}
+                      onChange={(e) => {
+                        const newStats = [...statistik];
+                        newStats[index] = { ...newStats[index], nilai: e.target.value };
+                        setStatistik(newStats);
+                      }}
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-500 font-semibold">Satuan</label>
+                    <input
+                      type="text"
+                      value={item.satuan}
+                      onChange={(e) => {
+                        const newStats = [...statistik];
+                        newStats[index] = { ...newStats[index], satuan: e.target.value };
+                        setStatistik(newStats);
+                      }}
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs text-slate-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -159,7 +207,7 @@ export default function ProfilEditPage() {
           type="submit"
           className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center gap-2"
         >
-          <Save className="w-4 h-4" /> Simpan Perubahan Profil
+          <Save className="w-4 h-4" /> Simpan Perubahan Profil & Statistik
         </button>
 
       </form>

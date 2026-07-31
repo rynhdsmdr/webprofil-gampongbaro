@@ -21,10 +21,11 @@ Selamat datang di Panduan Pengelola Web Profil Gampong Baro! Dokumen ini diranca
 1. Di sidebar kiri, klik modul **"Profil Desa"**.
 2. Anda dapat mengubah:
    - Nama Desa, Slogan, Kecamatan, Kabupaten
+   - Data Statistik Desa (**Total Penduduk**, **Kepala Keluarga**, **Luas Wilayah**, **Jumlah Dusun / RT**)
    - Teks Sejarah Singkat Gampong Baro
    - Visi & Misi Gampong (setiap Misi dipisahkan dengan baris baru)
    - Nama, Foto, dan Teks Sambutan Geuchik
-3. Klik **"Simpan Perubahan Profil"**.
+3. Klik **"Simpan Perubahan Profil & Statistik"**.
 
 ---
 
