@@ -140,7 +140,12 @@ export default function Footer() {
             <p className="text-xs text-slate-400 leading-relaxed">
               Didevelop dan dipersembahkan oleh Tim KKN Mahasiswa sebagai sarana pengembangan potensi daerah menuju Desa Mandiri Digital.
             </p>
-            <Link to="/admin/login" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline pt-1">
+            <Link 
+              to="/admin/login" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline pt-1"
+            >
               Akses Portal Admin <ExternalLink className="w-3 h-3" />
             </Link>
           </div>

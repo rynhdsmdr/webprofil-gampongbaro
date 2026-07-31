@@ -44,17 +44,17 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg group-hover:scale-105 transition-transform shrink-0">
               GB
             </div>
             <div>
-              <span className={`block font-serif font-bold text-lg leading-tight transition-colors ${
+              <span className={`block font-serif font-bold text-base sm:text-lg leading-tight transition-colors ${
                 scrolled ? 'text-emerald-950' : 'text-white'
               }`}>
                 {profil.nama || 'Gampong Baro'}
               </span>
-              <span className={`block text-xs font-medium tracking-wide ${
+              <span className={`block text-[10px] sm:text-xs font-medium tracking-wide ${
                 scrolled ? 'text-emerald-600' : 'text-emerald-300'
               }`}>
                 {profil.kecamatan}, {profil.kabupaten}
@@ -90,6 +90,8 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               to="/admin/login"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
                 scrolled
                   ? 'bg-slate-900 text-white hover:bg-emerald-700'
@@ -105,51 +107,59 @@ export default function Navbar() {
           <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-lg transition-colors ${
-                scrolled ? 'text-slate-800 hover:bg-slate-100' : 'text-white hover:bg-white/10'
+              className={`p-2 rounded-xl transition-colors ${
+                scrolled ? 'text-slate-800 bg-slate-100/80 hover:bg-slate-200' : 'text-white bg-white/10 hover:bg-white/20'
               }`}
               aria-label="Toggle menu"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu & Overlay */}
       {isOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 shadow-xl px-4 pt-3 pb-6 space-y-2 mt-3 animate-fadeIn">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const active = isActive(link.path);
-            return (
+        <>
+          <div 
+            className="fixed inset-0 top-[65px] bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="relative z-50 lg:hidden bg-white border-b border-slate-200 shadow-2xl px-4 pt-3 pb-6 space-y-1.5 mt-2 mx-3 rounded-2xl max-h-[80vh] overflow-y-auto animate-fadeIn">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                    active
+                      ? 'bg-emerald-600 text-white font-semibold shadow-sm'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  {link.name}
+                </Link>
+              );
+            })}
+            <div className="pt-3 mt-2 border-t border-slate-100">
               <Link
-                key={link.name}
-                to={link.path}
+                to="/admin/login"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                  active
-                    ? 'bg-emerald-600 text-white font-semibold'
-                    : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-800'
-                }`}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition"
               >
-                <Icon className="w-4 h-4" />
-                {link.name}
+                <Lock className="w-4 h-4" />
+                Login Admin Panel
               </Link>
-            );
-          })}
-          <div className="pt-2 border-t border-slate-100">
-            <Link
-              to="/admin/login"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-900 text-white rounded-lg text-sm font-bold shadow hover:bg-emerald-700 transition"
-            >
-              <Lock className="w-4 h-4" />
-              Login Admin
-            </Link>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

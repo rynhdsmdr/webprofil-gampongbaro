@@ -64,21 +64,21 @@ export default function HomePage() {
       </section>
 
       {/* STATISTIK BANNER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-20">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-emerald-100/80">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-24 relative z-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl border border-emerald-100/80">
           {statistik.map((stat, idx) => {
             const icons = [Users, HomeIcon, MapPin, Building];
             const IconComp = icons[idx % icons.length];
             return (
-              <div key={stat.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-emerald-200 transition">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <IconComp className="w-6 h-6" />
+              <div key={stat.id} className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-emerald-200 transition">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <IconComp className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-serif">
+                  <div className="text-xl sm:text-3xl font-extrabold text-slate-900 font-serif">
                     {stat.nilai}
                   </div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     {stat.label} ({stat.satuan})
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default function HomePage() {
 
       {/* SAMBUTAN GEUCHIK */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-gradient-to-br from-emerald-900 to-slate-900 text-white rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="bg-gradient-to-br from-emerald-900 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
           
           <div className="lg:col-span-4 flex flex-col items-center text-center">
             <div className="relative w-44 h-44 sm:w-52 sm:h-52 rounded-2xl overflow-hidden border-4 border-emerald-500/40 shadow-2xl">
