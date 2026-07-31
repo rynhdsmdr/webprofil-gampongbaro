@@ -1,5 +1,6 @@
 // Data Service with LocalStorage persistence for Gampong Baro
 // Enables instant CRUD operations for Admin Panel and realistic public display
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_KEYS = {
   PROFIL: 'gampongbaro_profil',
@@ -264,8 +265,109 @@ const setStorage = (key, value) => {
 
 // Data Service API Export
 export const DataService = {
+  // Sync all tables with Supabase on startup
+  syncWithSupabase: async () => {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase is not configured yet. Using LocalStorage fallback.');
+      return false;
+    }
+
+    try {
+      // 1. Profil
+      const { data: dbProfil, error: errProfil } = await supabase.from('profil').select('*');
+      if (!errProfil && dbProfil && dbProfil.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.PROFIL, JSON.stringify(dbProfil[0]));
+      } else if (dbProfil && dbProfil.length === 0) {
+        await supabase.from('profil').insert([{ id: '1', ...DEFAULT_PROFIL }]);
+      }
+
+      // 2. Lokasi
+      const { data: dbLokasi, error: errLokasi } = await supabase.from('lokasi').select('*');
+      if (!errLokasi && dbLokasi && dbLokasi.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.LOKASI, JSON.stringify(dbLokasi[0]));
+      } else if (dbLokasi && dbLokasi.length === 0) {
+        await supabase.from('lokasi').insert([{ id: '1', ...DEFAULT_LOKASI }]);
+      }
+
+      // 3. Kontak
+      const { data: dbKontak, error: errKontak } = await supabase.from('kontak').select('*');
+      if (!errKontak && dbKontak && dbKontak.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.KONTAK, JSON.stringify(dbKontak[0]));
+      } else if (dbKontak && dbKontak.length === 0) {
+        await supabase.from('kontak').insert([{ id: '1', ...DEFAULT_KONTAK }]);
+      }
+
+      // 4. Statistik
+      const { data: dbStatistik, error: errStatistik } = await supabase.from('statistik').select('*');
+      if (!errStatistik && dbStatistik && dbStatistik.length > 0) {
+        const sortedStats = [...dbStatistik].sort((a, b) => a.id.localeCompare(b.id));
+        localStorage.setItem(STORAGE_KEYS.STATISTIK, JSON.stringify(sortedStats));
+      } else if (dbStatistik && dbStatistik.length === 0) {
+        await supabase.from('statistik').insert(DEFAULT_STATISTIK);
+      }
+
+      // 5. Aparatur
+      const { data: dbAparatur, error: errAparatur } = await supabase.from('aparatur').select('*');
+      if (!errAparatur && dbAparatur) {
+        if (dbAparatur.length > 0) {
+          const sortedAparatur = [...dbAparatur].sort((a, b) => a.urutan - b.urutan);
+          localStorage.setItem(STORAGE_KEYS.APARATUR, JSON.stringify(sortedAparatur));
+        } else {
+          await supabase.from('aparatur').insert(DEFAULT_APARATUR);
+        }
+      }
+
+      // 6. Berita
+      const { data: dbBerita, error: errBerita } = await supabase.from('berita').select('*');
+      if (!errBerita && dbBerita) {
+        if (dbBerita.length > 0) {
+          const sortedBerita = [...dbBerita].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+          localStorage.setItem(STORAGE_KEYS.BERITA, JSON.stringify(sortedBerita));
+        } else {
+          await supabase.from('berita').insert(DEFAULT_BERITA);
+        }
+      }
+
+      // 7. Galeri
+      const { data: dbGaleri, error: errGaleri } = await supabase.from('galeri').select('*');
+      if (!errGaleri && dbGaleri) {
+        if (dbGaleri.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.GALERI, JSON.stringify(dbGaleri));
+        } else {
+          await supabase.from('galeri').insert(DEFAULT_GALERI);
+        }
+      }
+
+      // 8. Layanan
+      const { data: dbLayanan, error: errLayanan } = await supabase.from('layanan').select('*');
+      if (!errLayanan && dbLayanan) {
+        if (dbLayanan.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.LAYANAN, JSON.stringify(dbLayanan));
+        } else {
+          await supabase.from('layanan').insert(DEFAULT_LAYANAN);
+        }
+      }
+
+      // 9. Pesan
+      const { data: dbPesan, error: errPesan } = await supabase.from('pesan').select('*');
+      if (!errPesan && dbPesan) {
+        if (dbPesan.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.PESAN, JSON.stringify(dbPesan));
+        } else {
+          await supabase.from('pesan').insert(DEFAULT_PESAN);
+        }
+      }
+
+      console.log('Successfully synced data with Supabase.');
+      return true;
+    } catch (e) {
+      console.error('Error syncing with Supabase:', e);
+      return false;
+    }
+  },
+
   // Reset all data to seed defaults
-  resetToDefaults: () => {
+  resetToDefaults: async () => {
     localStorage.setItem(STORAGE_KEYS.PROFIL, JSON.stringify(DEFAULT_PROFIL));
     localStorage.setItem(STORAGE_KEYS.APARATUR, JSON.stringify(DEFAULT_APARATUR));
     localStorage.setItem(STORAGE_KEYS.BERITA, JSON.stringify(DEFAULT_BERITA));
@@ -275,23 +377,79 @@ export const DataService = {
     localStorage.setItem(STORAGE_KEYS.KONTAK, JSON.stringify(DEFAULT_KONTAK));
     localStorage.setItem(STORAGE_KEYS.PESAN, JSON.stringify(DEFAULT_PESAN));
     localStorage.setItem(STORAGE_KEYS.STATISTIK, JSON.stringify(DEFAULT_STATISTIK));
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('profil').upsert([{ id: '1', ...DEFAULT_PROFIL }]);
+        await supabase.from('lokasi').upsert([{ id: '1', ...DEFAULT_LOKASI }]);
+        await supabase.from('kontak').upsert([{ id: '1', ...DEFAULT_KONTAK }]);
+        
+        await supabase.from('statistik').delete().neq('id', '0');
+        await supabase.from('statistik').insert(DEFAULT_STATISTIK);
+        
+        await supabase.from('aparatur').delete().neq('id', '0');
+        await supabase.from('aparatur').insert(DEFAULT_APARATUR);
+        
+        await supabase.from('berita').delete().neq('id', '0');
+        await supabase.from('berita').insert(DEFAULT_BERITA);
+        
+        await supabase.from('galeri').delete().neq('id', '0');
+        await supabase.from('galeri').insert(DEFAULT_GALERI);
+        
+        await supabase.from('layanan').delete().neq('id', '0');
+        await supabase.from('layanan').insert(DEFAULT_LAYANAN);
+        
+        await supabase.from('pesan').delete().neq('id', '0');
+        await supabase.from('pesan').insert(DEFAULT_PESAN);
+      } catch (e) {
+        console.error('Error resetting Supabase defaults:', e);
+      }
+    }
   },
 
   // Profil
   getProfil: () => getStorage(STORAGE_KEYS.PROFIL, DEFAULT_PROFIL),
-  updateProfil: (data) => setStorage(STORAGE_KEYS.PROFIL, data),
+  updateProfil: (data) => {
+    setStorage(STORAGE_KEYS.PROFIL, data);
+    if (isSupabaseConfigured()) {
+      supabase.from('profil').upsert([{ id: '1', ...data }]).then(({ error }) => {
+        if (error) console.error('Supabase Profil update error:', error);
+      });
+    }
+  },
 
   // Lokasi
   getLokasi: () => getStorage(STORAGE_KEYS.LOKASI, DEFAULT_LOKASI),
-  updateLokasi: (data) => setStorage(STORAGE_KEYS.LOKASI, data),
+  updateLokasi: (data) => {
+    setStorage(STORAGE_KEYS.LOKASI, data);
+    if (isSupabaseConfigured()) {
+      supabase.from('lokasi').upsert([{ id: '1', ...data }]).then(({ error }) => {
+        if (error) console.error('Supabase Lokasi update error:', error);
+      });
+    }
+  },
 
   // Kontak
   getKontak: () => getStorage(STORAGE_KEYS.KONTAK, DEFAULT_KONTAK),
-  updateKontak: (data) => setStorage(STORAGE_KEYS.KONTAK, data),
+  updateKontak: (data) => {
+    setStorage(STORAGE_KEYS.KONTAK, data);
+    if (isSupabaseConfigured()) {
+      supabase.from('kontak').upsert([{ id: '1', ...data }]).then(({ error }) => {
+        if (error) console.error('Supabase Kontak update error:', error);
+      });
+    }
+  },
 
   // Statistik
   getStatistik: () => getStorage(STORAGE_KEYS.STATISTIK, DEFAULT_STATISTIK),
-  updateStatistik: (data) => setStorage(STORAGE_KEYS.STATISTIK, data),
+  updateStatistik: (data) => {
+    setStorage(STORAGE_KEYS.STATISTIK, data);
+    if (isSupabaseConfigured()) {
+      supabase.from('statistik').upsert(data).then(({ error }) => {
+        if (error) console.error('Supabase Statistik update error:', error);
+      });
+    }
+  },
 
   // Aparatur (CRUD)
   getAparatur: () => getStorage(STORAGE_KEYS.APARATUR, DEFAULT_APARATUR),
@@ -300,17 +458,33 @@ export const DataService = {
     const newItem = { ...item, id: Date.now().toString() };
     const updated = [...list, newItem];
     setStorage(STORAGE_KEYS.APARATUR, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('aparatur').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase addAparatur error:', error);
+      });
+    }
     return newItem;
   },
   updateAparatur: (id, item) => {
     const list = getStorage(STORAGE_KEYS.APARATUR, DEFAULT_APARATUR);
-    const updated = list.map(x => x.id === id ? { ...x, ...item } : x);
+    const updatedItem = { id, ...item };
+    const updated = list.map(x => x.id === id ? updatedItem : x);
     setStorage(STORAGE_KEYS.APARATUR, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('aparatur').upsert([updatedItem]).then(({ error }) => {
+        if (error) console.error('Supabase updateAparatur error:', error);
+      });
+    }
   },
   deleteAparatur: (id) => {
     const list = getStorage(STORAGE_KEYS.APARATUR, DEFAULT_APARATUR);
     const updated = list.filter(x => x.id !== id);
     setStorage(STORAGE_KEYS.APARATUR, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('aparatur').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase deleteAparatur error:', error);
+      });
+    }
   },
 
   // Berita (CRUD)
@@ -325,18 +499,35 @@ export const DataService = {
     const newItem = { ...item, id: Date.now().toString(), slug, tanggal: item.tanggal || new Date().toISOString().split('T')[0] };
     const updated = [newItem, ...list];
     setStorage(STORAGE_KEYS.BERITA, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('berita').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase addBerita error:', error);
+      });
+    }
     return newItem;
   },
   updateBerita: (id, item) => {
     const list = getStorage(STORAGE_KEYS.BERITA, DEFAULT_BERITA);
     const slug = item.judul ? item.judul.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : undefined;
-    const updated = list.map(x => x.id === id ? { ...x, ...item, ...(slug ? { slug } : {}) } : x);
+    const existing = list.find(x => x.id === id) || {};
+    const updatedItem = { ...existing, ...item, ...(slug ? { slug } : {}) };
+    const updated = list.map(x => x.id === id ? updatedItem : x);
     setStorage(STORAGE_KEYS.BERITA, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('berita').upsert([updatedItem]).then(({ error }) => {
+        if (error) console.error('Supabase updateBerita error:', error);
+      });
+    }
   },
   deleteBerita: (id) => {
     const list = getStorage(STORAGE_KEYS.BERITA, DEFAULT_BERITA);
     const updated = list.filter(x => x.id !== id);
     setStorage(STORAGE_KEYS.BERITA, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('berita').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase deleteBerita error:', error);
+      });
+    }
   },
 
   // Galeri (CRUD)
@@ -346,17 +537,34 @@ export const DataService = {
     const newItem = { ...item, id: Date.now().toString() };
     const updated = [newItem, ...list];
     setStorage(STORAGE_KEYS.GALERI, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('galeri').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase addGaleri error:', error);
+      });
+    }
     return newItem;
   },
   updateGaleri: (id, item) => {
     const list = getStorage(STORAGE_KEYS.GALERI, DEFAULT_GALERI);
-    const updated = list.map(x => x.id === id ? { ...x, ...item } : x);
+    const existing = list.find(x => x.id === id) || {};
+    const updatedItem = { ...existing, ...item };
+    const updated = list.map(x => x.id === id ? updatedItem : x);
     setStorage(STORAGE_KEYS.GALERI, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('galeri').upsert([updatedItem]).then(({ error }) => {
+        if (error) console.error('Supabase updateGaleri error:', error);
+      });
+    }
   },
   deleteGaleri: (id) => {
     const list = getStorage(STORAGE_KEYS.GALERI, DEFAULT_GALERI);
     const updated = list.filter(x => x.id !== id);
     setStorage(STORAGE_KEYS.GALERI, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('galeri').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase deleteGaleri error:', error);
+      });
+    }
   },
 
   // Layanan (CRUD)
@@ -366,17 +574,34 @@ export const DataService = {
     const newItem = { ...item, id: Date.now().toString() };
     const updated = [...list, newItem];
     setStorage(STORAGE_KEYS.LAYANAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('layanan').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase addLayanan error:', error);
+      });
+    }
     return newItem;
   },
   updateLayanan: (id, item) => {
     const list = getStorage(STORAGE_KEYS.LAYANAN, DEFAULT_LAYANAN);
-    const updated = list.map(x => x.id === id ? { ...x, ...item } : x);
+    const existing = list.find(x => x.id === id) || {};
+    const updatedItem = { ...existing, ...item };
+    const updated = list.map(x => x.id === id ? updatedItem : x);
     setStorage(STORAGE_KEYS.LAYANAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('layanan').upsert([updatedItem]).then(({ error }) => {
+        if (error) console.error('Supabase updateLayanan error:', error);
+      });
+    }
   },
   deleteLayanan: (id) => {
     const list = getStorage(STORAGE_KEYS.LAYANAN, DEFAULT_LAYANAN);
     const updated = list.filter(x => x.id !== id);
     setStorage(STORAGE_KEYS.LAYANAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('layanan').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase deleteLayanan error:', error);
+      });
+    }
   },
 
   // Pesan / Inbox
@@ -387,17 +612,34 @@ export const DataService = {
     const newItem = { ...pesanObj, id: Date.now().toString(), tanggal: dateStr, isRead: false };
     const updated = [newItem, ...list];
     setStorage(STORAGE_KEYS.PESAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('pesan').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase addPesan error:', error);
+      });
+    }
     return newItem;
   },
   markPesanAsRead: (id) => {
     const list = getStorage(STORAGE_KEYS.PESAN, DEFAULT_PESAN);
-    const updated = list.map(x => x.id === id ? { ...x, isRead: true } : x);
+    const existing = list.find(x => x.id === id) || {};
+    const updatedItem = { ...existing, isRead: true };
+    const updated = list.map(x => x.id === id ? updatedItem : x);
     setStorage(STORAGE_KEYS.PESAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('pesan').upsert([updatedItem]).then(({ error }) => {
+        if (error) console.error('Supabase markPesanAsRead error:', error);
+      });
+    }
   },
   deletePesan: (id) => {
     const list = getStorage(STORAGE_KEYS.PESAN, DEFAULT_PESAN);
     const updated = list.filter(x => x.id !== id);
     setStorage(STORAGE_KEYS.PESAN, updated);
+    if (isSupabaseConfigured()) {
+      supabase.from('pesan').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase deletePesan error:', error);
+      });
+    }
   },
 
   // Admin Auth simulation
@@ -409,7 +651,6 @@ export const DataService = {
       localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
       return { success: true };
     }
-    // Also allow user's email samudra2626@gmail.com
     if (email === 'samudra2626@gmail.com' && password === 'admin123') {
       localStorage.setItem(STORAGE_KEYS.AUTH, 'true');
       return { success: true };
